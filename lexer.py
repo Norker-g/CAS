@@ -5,6 +5,8 @@ This module converts the input string into a series of tokens, getting it ready 
 from sys import _debugmallocstats
 from typing import Dict, List, Optional
 from tokens import Token, TokenKind
+import logging
+log = logging.getLogger(__name__)
 
 class LexerError(Exception):
     pass
@@ -67,14 +69,13 @@ class Lexer:
         """
         Outputs one Token and changes the position to the beginning of the next Token 
         """
-        if self.debug:
-            print(f"tokenizing unit at pos {self.pos}")
         # Advance pos and token_start to the beginning of the Next Token
         while self.current_char in IGNORED_CHARS:
             self.pos += 1
             if self.debug:
                 print(f"Current pos: {self.pos}, skipping char")
         
+        log.debug(f"Processing character {self.current_char} at position {self.pos}")
         self.token_start = self.pos
         
         # Identify the next token 
@@ -85,17 +86,15 @@ class Lexer:
             token =  self._tokenize_number()
 
         elif self.current_char.isalpha():
-            token =  Token(TokenKind.VARIABLE, self.current_char, self.token_start, self.current_char)
+            token =  Token(TokenKind.SYMBOL, self.current_char, self.token_start, self.current_char)
             self.pos += 1
          
         elif self.current_char in CHAR_TO_TOKEN:
-            if self.debug:
-                print(f"Identified char '{self.current_char}' at pos {self.pos} as a one-character token")
             token = Token(CHAR_TO_TOKEN[self.current_char], self.current_char, self.token_start)
             self.pos += 1
 
         else:
-            raise LexerError(f"The char {self.current_char} at the position {self.pos} could not be recognized by the lexer")
+            raise LexerError(f"The charecter {self.current_char} at the position {self.pos} could not be recognized by the lexer")
 
         return token
 
@@ -104,8 +103,6 @@ class Lexer:
         '''Makes a Token out of a Number'''
         while (not self.pos == len(self.source)) and self.current_char.isdigit():
             self.pos +=1
-        if self.debug:
-            print(f"The Number is {self._get_token_lexeme()}")
         return Token(TokenKind.NUMBER, self._get_token_lexeme() ,self.token_start, int(self._get_token_lexeme()))
 
 

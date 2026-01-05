@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 class TokenKind(Enum):
     NUMBER = auto()
-    VARIABLE = auto()
+    SYMBOL = auto()
     PLUS = auto()
     MINUS = auto()
     STAR = auto()
