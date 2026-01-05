@@ -4,7 +4,6 @@ The parser takes a list of Tokens and transforms it into a AST graph.
 from tokens import Token, TokenKind
 from nodes import *
 import logging
-
 log = logging.getLogger(__name__)
 
 class ParserError(Exception):
@@ -28,6 +27,7 @@ class Parser:
         return  parsed
             
     def _parse_sum(self, left) -> Node:
+        log.debug(f"Entering _parse_sum(). Currently at index {self.i}")
         if self.tok.kind == TokenKind.EOF: return left
 
         elif self.tok.kind in (TokenKind.PLUS, TokenKind.MINUS):
@@ -42,6 +42,7 @@ class Parser:
         else: return self._parse_prod(left)
 
     def _parse_prod(self, left) -> Node:
+        log.debug(f"Entering _parse_prod(). Currently at index {self.i}")
         if self.tok.kind == TokenKind.EOF: return left
 
         elif self.tok.kind in (TokenKind.STAR, TokenKind.SLASH):

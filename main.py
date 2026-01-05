@@ -3,7 +3,7 @@ import logging
 import sys
 import tokens
 from lexer import Lexer, LexerError
-from parser import Parser, ParserError
+from parser import Parser, ParserError, ParserError
 from nodes import *
 
 setup_logging(level=__import__("logging").DEBUG)
