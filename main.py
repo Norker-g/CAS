@@ -4,7 +4,7 @@ import sys
 import tokens
 from lexer import Lexer, LexerError
 from parser import Parser, ParserError, ParserError
-from nodes import *
+from ast_nodes import *
 
 setup_logging(level=__import__("logging").DEBUG)
 log = logging.getLogger(__name__)

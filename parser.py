@@ -2,7 +2,7 @@
 The parser takes a list of Tokens and transforms it into a AST graph.
 '''
 from tokens import Token, TokenKind
-from nodes import *
+from ast_nodes import *
 import logging
 log = logging.getLogger(__name__)
 
