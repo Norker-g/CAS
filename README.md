@@ -2,8 +2,8 @@
 A Computer Algebra System, basically a calculator
 
 ## TODO
-* Lexer
-* Parser
+* Parser Error handling
+* Parser bracket handling
 * Basic calculator functionality
 * Simplification of basic operators
 * Simplifications of exponents
