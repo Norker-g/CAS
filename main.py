@@ -18,7 +18,7 @@ if __name__ == "__main__":
     l = Lexer(source)
     tokens = l.tokenize()
     log.info("Tokenized succefully")
-
+    log.debug(f"Tokens: {[t.kind for t in tokens]}")
     
     for i in tokens:
         print(i)
