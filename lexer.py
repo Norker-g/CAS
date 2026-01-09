@@ -39,12 +39,11 @@ class Lexer:
         token_start (int): The beginning of the Token currently parsed, used for debugging purposes
     """
 
-    def __init__(self, source: str, debug: bool = False):
+    def __init__(self, source: str):
         """Store input text and initialize lexer state"""
         self.source = source
         self.pos = 0
         self.token_start = 0
-        self.debug = debug
 
     def peek(self):
         if self.pos >= len(self.source):
@@ -54,9 +53,9 @@ class Lexer:
     def advance(self) -> str:
         """Returns the current character and moves one char"""
         ch = self.peek()
+        log.debug(f"processing character at index {self.pos}: '{ch}'")
         if ch != "\0":
             self.pos += 1
-        log.debug(f"processing character number {self.pos}: '{ch}'")
         return ch
 
     def tokenize(self) -> List[Token]:
@@ -80,23 +79,21 @@ class Lexer:
 
         # Identify the next token
         if ch == "\0":
-            token = Token(TokenKind.EOF, "", self.token_start)
+            return Token(TokenKind.EOF, "", self.token_start)
 
         elif ch.isdigit():
-            token = self._tokenize_number()
+            return self._tokenize_number()
 
         elif ch.isalpha():
-            token = Token(TokenKind.SYMBOL, self.peek(), self.token_start, self.peek())
+            return Token(TokenKind.SYMBOL, ch, self.token_start, ch)
 
         elif ch in CHAR_TO_TOKEN:
-            token = Token(CHAR_TO_TOKEN[self.peek()], self.peek(), self.token_start)
+            return Token(CHAR_TO_TOKEN[ch], ch, self.token_start)
 
         else:
             raise LexerError(
-                f"The charecter {self.peek()} at the position {self.pos} could not be recognized by the lexer"
+                f"The charecter {ch} at the position {self.token_start} could not be recognized by the lexer"
             )
-
-        return token
 
     def _tokenize_number(self) -> Token:
         """Makes a Token out of a Number"""
