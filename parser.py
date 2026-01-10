@@ -1,87 +1,124 @@
-'''
+"""
 The parser takes a list of Tokens and transforms it into a AST graph.
-'''
+"""
+
 from tokens import Token, TokenKind
-from ast_nodes import *
+from ast_nodes import Node, Leaf, Binary, Number, Symbol
 import logging
+
 log = logging.getLogger(__name__)
+
 
 class ParserError(Exception):
     pass
+
 
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
         self.i = 0
-        self.bracket_level = 0 
+        self.bracket_level = 0
 
-    @property
-    def tok(self):
-        return self.tokens[self.i]
+    # Helper functions
+    def peek(self, offset: int = 0) -> Token:
+        return self.tokens[self.i + offset]
 
+    def at_end(self) -> bool:
+        return self.peek().kind is TokenKind.EOF
+
+    def previous(self) -> Token:
+        if self.i == 0:
+            raise ParserError("previous() called before consuming any token")
+        return self.tokens[self.i - 1]
+
+    def advance(self):
+        if self.at_end():
+            raise ParserError("advance() called at EOF")
+        self.i += 1
+        return self.previous()
+
+    def check(self, kind: TokenKind) -> bool:
+        if self.at_end():
+            return False
+        return self.peek().kind is kind
+
+    def match(self, *kinds: TokenKind) -> bool:
+        for kind in kinds:
+            if self.check(kind):
+                return True
+        return False
+
+    def consume(self, kind: TokenKind, message: str):
+        if self.check(kind):
+            return self.advance()
+
+        tok = self.peek()
+        raise ParserError(f"{message}. Got {tok.kind} at position {tok.pos}")
+
+    # main logic
     def parse(self) -> Node:
         parsed = None
-        while self.tok.kind != TokenKind.EOF:
-            parsed = self._parse_sum(parsed)
+        while not self.at_end():
+            parsed = self.parse_sum(parsed)
             log.debug(f"parsed = {parsed}. Currently at i = {self.i}")
-        if parsed is None: raise ParserError(f"right operator in the sum at index i = {self.i} is None")
-        return  parsed
+        if parsed is None:
+            raise ParserError(
+                f"right operator in the sum at index i = {self.i} is None"
+            )
+        return parsed
 
-    def _parse_sum(self, left) -> Node:
-        log.debug(f"Entering _parse_sum(). Currently at index {self.i}. left = {left}")
-        if self.tok.kind == TokenKind.EOF: return left
-
-        elif self.tok.kind in (TokenKind.PLUS, TokenKind.MINUS):
+    def parse_sum(self, left) -> Node:
+        log.debug(f"Entering parse_sum(). Currently at index {self.i}. left = {left}")
+        if self.match(TokenKind.PLUS, TokenKind.MINUS):
             right = None
-            op = self.tok.kind
-            self.i += 1
-            while not self.tok.kind in (TokenKind.PLUS, TokenKind.MINUS, TokenKind.EOF):
-                right = self._parse_sum(right) 
-            if right is None: raise ParserError(f"right operator in the sum at index i = {self.i} is None")
+            op = self.peek().kind
+            while self.match(TokenKind.PLUS, TokenKind.MINUS):
+                self.advance()
+                right = self.parse_prod(right)
+
+            if right is None:
+                raise ParserError(
+                    f"right operator in the sum at index i = {self.i} is None"
+                )
+            return Binary(left, op, right)
+        else:
+            return self.parse_prod(left)
+
+    def parse_prod(self, left) -> Node:
+        log.debug(f"Entering parse_prod(). Currently at index {self.i}. left = {left}")
+        if self.match(TokenKind.STAR, TokenKind.SLASH):
+            op = self.advance().kind
+            right = self.parse_atom()
             return Binary(left, op, right)
 
-        elif self.tok.kind == TokenKind.LPAREN:
+        elif self.check(TokenKind.LPAREN):
             return self._handle_left_brackets()
-        elif self.tok.kind == TokenKind.RPAREN and self.bracket_level > 0:
-            self.i += 1
+        elif self.check(TokenKind.RPAREN):
+            self.advance()
             self.bracket_level -= 1
             return left
-        else: return self._parse_prod(left)
+        else:
+            return self.parse_atom()
 
-    def _parse_prod(self, left) -> Node:
-        log.debug(f"Entering _parse_prod(). Currently at index {self.i}. left = {left}")
-        if self.tok.kind == TokenKind.EOF: return left
-            
-        elif self.tok.kind in (TokenKind.STAR, TokenKind.SLASH):
-            op = self.tok.kind
-            self.i += 1
-            right = self._parse_prod(None) 
-            return Binary(left, op, right)
-        
-            
-        elif self.tok.kind == TokenKind.LPAREN:
-            return self._handle_left_brackets()
-        elif self.tok.kind == TokenKind.RPAREN and self.bracket_level > 0:
-            self.i += 1
+    def parse_atom(self) -> Node:
+        if self.check(TokenKind.NUMBER):
+            tok = self.advance()
+            return Number(tok.value)  # pyright: ignore[reportArgumentType]
+        elif self.check(TokenKind.SYMBOL):
+            tok = self.advance()
+            return Symbol(tok.value)  # pyright: ignore[reportArgumentType]
+        elif self.check(TokenKind.LPAREN):
+            self.bracket_level += 1
+            pass
+        elif self.check(TokenKind.RPAREN):
             self.bracket_level -= 1
-            return left
-        else: return self._parse_leaf()
+            pass
+        else:
+            raise ParserError(
+                f"parse_atom got unexpected TokenKind: {self.peek().kind}"
+            )
 
-    def _parse_leaf(self) -> Node:
-        if self.tok.kind == TokenKind.NUMBER: out =  self._parse_num()
-        elif self.tok.kind == TokenKind.SYMBOL: out =  self._parse_symbol()
-        else: raise ParserError(f'Expected NUMBER or SYMBOL, instead got {self.tok.kind} "{self.tok.lexeme}" at {self.i}')
-        self.i+=1
-        return out
-
-    def _parse_num(self) -> Node:
-        return Number(self.tok.value)
-
-    def _parse_symbol(self) -> Node:
-        return Symbol(self.tok.value)
-
-    def _handle_left_brackets(self)-> Node:
-        self.i += 1
+    def _handle_left_brackets(self) -> Node:
+        self.advance()
         self.bracket_level += 1
         return self.parse()
-    
