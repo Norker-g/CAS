@@ -58,9 +58,9 @@ class Lexer:
             self.pos += 1
         return ch
 
-    def tokenize(self) -> List[Token]:
+    def tokenize(self) -> list[Token]:
         """Runs next_token until every token is processed and added to a list of tokens, which then is outputted"""
-        token_list: List[Token] = []
+        token_list: list[Token] = []
         while True:
             tok = self.next_token()  # should always return one Token
             token_list.append(tok)

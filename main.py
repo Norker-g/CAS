@@ -3,7 +3,7 @@ import logging
 import sys
 import tokens
 from lexer import Lexer, LexerError
-from parser import Parser, ParserError, ParserError
+from parser import Parser, ParserError
 from ast_nodes import *
 
 setup_logging(level=__import__("logging").DEBUG)
@@ -15,13 +15,13 @@ if __name__ == "__main__":
         raise TypeError("Wrong number of Arguments")
     source = args[0]
     log.info(f"Received {source} as input")
+
     l = Lexer(source)
     tokens = l.tokenize()
     log.info("Tokenized succefully")
-    log.debug(f"Tokens: {[t.kind for t in tokens]}")
-    
-    for i in tokens:
-        print(i)
-    p = Parser(tokens)   
+    log.debug(f"Tokens: {tokens}")
+
+    p = Parser(tokens)
     tree = p.parse()
-    print(tree)
+    log.info("Parsed successfully")
+    log.debug(f"AST tree: {tree}")
