@@ -1,6 +1,6 @@
 from tokens import Token, TokenKind
 import logging
-from ast_nodes import Node, Unary, Leaf, Binary, Number, Symbol
+from parser_nodes import Unary, Binary, Number, Symbol, ParserNode
 
 log = logging.getLogger(__name__)
 
@@ -43,12 +43,14 @@ class Parser:
 
     def parse(self):
         # Parsing hierarchy: Sum -> Product -> Unary -> Atom
+        if self.at_end():
+            raise ParserError("empty Input")
         tree = self.parse_sum()
         if self.pos + 1 < len(self.tokens):
             log.debug(f"Not all Tokens consumed. Currently at token {self.peek()}")
         return tree
 
-    def parse_sum(self) -> Node:
+    def parse_sum(self) -> ParserNode:
         left = self.parse_prod()
         while (
             self.match(TokenKind.PLUS, TokenKind.MINUS)
@@ -63,7 +65,7 @@ class Parser:
             self.advance()
         return left
 
-    def parse_prod(self) -> Node:
+    def parse_prod(self) -> ParserNode:
         left = self.parse_unary()
         while (
             self.match(
@@ -84,15 +86,24 @@ class Parser:
             left = Binary(op, left, right)
         return left
 
-    def parse_unary(self) -> Node:
+    def parse_unary(self) -> ParserNode:
         if self.match(TokenKind.PLUS, TokenKind.MINUS):
             op = self.advance().kind
-            expr = self.parse_atom()
+            expr = self.parse_exp()
             return Unary(op, expr)
 
-        return self.parse_atom()
+        return self.parse_exp()
 
-    def parse_atom(self) -> Node:
+    def parse_exp(self) -> ParserNode:
+        left = self.parse_atom()
+        log.debug(f"currently at {self.peek()}")
+        if self.match(TokenKind.CARET) and not self.at_end():
+            self.advance()
+            right = self.parse_exp()
+            left = Binary(TokenKind.CARET, left, right)
+        return left
+
+    def parse_atom(self) -> ParserNode:
         tok = self.peek()
         match tok.kind:
             case TokenKind.NUMBER:

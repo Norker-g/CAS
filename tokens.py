@@ -12,6 +12,7 @@ class TokenKind(Enum):
     SLASH = auto()
     LPAREN = auto()
     RPAREN = auto()
+    CARET = auto()
     EOF = auto()
 
     def __str__(self) -> str:
