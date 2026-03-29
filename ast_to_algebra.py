@@ -20,7 +20,7 @@ class Converter:
 
     def convert(self, node, parent=None) -> tuple[AlgebraNode, ...]:
         # Tuples are used for Sum / Prod
-        # log.debug(f"converting:  {type(node)}")
+        log.debug(f"converting:\n  {node} \n with parent \n {parent}")
         match node:
             case Binary():
                 return self.convert_binary(node, parent)
@@ -41,14 +41,12 @@ class Converter:
 
         match op:
             case TokenKind.STAR:
-                return (
-                    Prod((*self.convert(left, node), *self.convert(right, parent))),
-                )
+                return (Prod((*self.convert(left, node), *self.convert(right, node))),)
             case TokenKind.SLASH:
                 # I can freely get the 0th of the tuple, because I know that because the node isnt binary it wont be converted
                 return (Prod((*self.convert(left, node), Inv(self.convert(right)[0]))),)
             case TokenKind.PLUS:
-                return (Sum((*self.convert(left, node), *self.convert(right, parent))),)
+                return (Sum((*self.convert(left, node), *self.convert(right, node))),)
             case TokenKind.MINUS:
                 # I can freely get the 0th of the tuple, because I know that because the node isnt binary it wont be converted
                 return (Sum((*self.convert(left, node), Neg(self.convert(right)[0]))),)

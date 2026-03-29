@@ -42,7 +42,7 @@ class Parser:
         return False
 
     def parse(self):
-        # Parsing hierarchy: Sum -> Product -> Unary -> Atom
+        # Parsing hierarchy: Sum -> exp -> Product -> Unary -> Atom
         if self.at_end():
             raise ParserError("empty Input")
         tree = self.parse_sum()
@@ -51,22 +51,30 @@ class Parser:
         return tree
 
     def parse_sum(self) -> ParserNode:
-        left = self.parse_prod()
+        left = self.parse_unary()
         while (
             self.match(TokenKind.PLUS, TokenKind.MINUS)
             and not self.check(TokenKind.RPAREN)
             and not self.at_end()
         ):
             op = self.advance().kind
-            right = self.parse_prod()
+            right = self.parse_unary()
             left = Binary(op, left, right)
 
         if self.check(TokenKind.RPAREN):
             self.advance()
         return left
 
+    def parse_unary(self) -> ParserNode:
+        if self.match(TokenKind.PLUS, TokenKind.MINUS):
+            op = self.advance().kind
+            expr = self.parse_prod()
+            return Unary(op, expr)
+
+        return self.parse_prod()
+
     def parse_prod(self) -> ParserNode:
-        left = self.parse_unary()
+        left = self.parse_exp()
         while (
             self.match(
                 TokenKind.STAR,
@@ -82,17 +90,9 @@ class Parser:
                 self.advance()
             else:
                 op = TokenKind.STAR
-            right = self.parse_unary()
+            right = self.parse_exp()
             left = Binary(op, left, right)
         return left
-
-    def parse_unary(self) -> ParserNode:
-        if self.match(TokenKind.PLUS, TokenKind.MINUS):
-            op = self.advance().kind
-            expr = self.parse_exp()
-            return Unary(op, expr)
-
-        return self.parse_exp()
 
     def parse_exp(self) -> ParserNode:
         left = self.parse_atom()

@@ -5,7 +5,8 @@ import tokens
 from lexer import Lexer
 from parser import Parser
 from ast_to_algebra import Converter
-from simplify import Simplifier
+from algebra_nodes import Var
+from simplify import Simplifier, SimplifierError
 
 setup_logging(level=__import__("logging").DEBUG)
 log = logging.getLogger(__name__)
@@ -30,7 +31,16 @@ if __name__ == "__main__":
 
     c = Converter(tree)
     alg_tree = c.convert_full()
+    log.info("Converted from AST to Algebra succefully")
     log.debug(alg_tree)
 
+    # for i in alg_tree.children():
+    #     log.debug(i)
+    # log.debug("\n")
+    # for i in alg_tree.walk():
+    #     log.debug(i)
+
     s = Simplifier(alg_tree)
-    print(s.eval())
+    simplified = s.simplify(alg_tree)
+    log.info("simplified successfully")
+    print(simplified)

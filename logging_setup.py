@@ -7,6 +7,7 @@ import sys
 DEFAULT_FORMAT = "%(asctime)s %(levelname)s %(name)s:%(lineno)d: %(message)s"
 DEFAULT_DATEFMT = "%H:%M:%S"
 
+
 def setup_logging(
     *,
     enabled: bool | None = None,
@@ -37,7 +38,7 @@ def setup_logging(
             "warn": logging.WARNING,
             "error": logging.ERROR,
             "critical": logging.CRITICAL,
-            "1": logging.DEBUG,      # convenience
+            "1": logging.DEBUG,  # convenience
             "true": logging.DEBUG,
             "on": logging.DEBUG,
         }
@@ -54,4 +55,3 @@ def setup_logging(
     handler.setLevel(level)
     handler.setFormatter(logging.Formatter(fmt=fmt, datefmt=DEFAULT_DATEFMT))
     root.addHandler(handler)
-

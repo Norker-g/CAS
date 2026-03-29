@@ -93,23 +93,20 @@ class Lexer:
 
         else:
             raise LexerError(
-                f"The charecter {ch} at the position {self.token_start} could not be recognized by the lexer"
+                f"The character {ch} at the position {self.token_start} could not be recognized by the lexer"
             )
 
     def _tokenize_number(self) -> Token:
         """Makes a Token out of a Number"""
-        ch = self._peek()
-        log.debug(ch)
         separator_number = 0
-        while self._peek().isdigit():  # or ch in [",", ".", " "]:
+        while self._peek().isdigit() or self._peek() in [",", ".", " "]:
             ch = self._advance()
             if ch in [",", "."]:
                 separator_number += 1
 
         lexeme = self._get_token_lexeme()
-
-        for i in range(0, len(lexeme) - 1):
-            if lexeme[i] == " " and lexeme[i + 1].isdigit():
+        for char in lexeme.strip():
+            if char == " ":
                 raise LexerError("Space in the middle of a number")
 
         if separator_number == 1:

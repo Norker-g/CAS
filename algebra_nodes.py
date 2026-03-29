@@ -1,12 +1,17 @@
+from __future__ import annotations
 from collections.abc import Iterator
 from dataclasses import dataclass
 
 
 class AlgebraNode:
-    def children(self) -> tuple["AlgebraNode", ...]:
-        return tuple(
-            value for value in vars(self).values() if isinstance(value, AlgebraNode)
-        )
+    def children(self) -> list[AlgebraNode]:
+        ret = []
+        for value in vars(self).values():
+            if isinstance(value, AlgebraNode):
+                ret.append(value)
+            if isinstance(value, tuple):
+                ret.extend(value)
+        return ret
 
     def walk(self) -> Iterator["AlgebraNode"]:
         """Gets all nodes of the tree."""
@@ -15,7 +20,7 @@ class AlgebraNode:
             yield from child.walk()
 
 
-@dataclass(repr=False)
+@dataclass(frozen=True)
 class Num(AlgebraNode):
     """
     A numeric literal node.
@@ -26,11 +31,11 @@ class Num(AlgebraNode):
 
     value: int | float
 
-    def __repr__(self) -> str:
-        return str(self.value)
+    # def __repr__(self) -> str:
+    #     return str(self.value)
 
 
-@dataclass(repr=False)
+@dataclass(repr=False, frozen=True)
 class Var(AlgebraNode):
     """
     A symbolic variable node.
@@ -45,7 +50,7 @@ class Var(AlgebraNode):
         return self.name
 
 
-@dataclass(repr=False)
+@dataclass(frozen=True)
 class Neg(AlgebraNode):
     """
     A unary negation node.
@@ -56,13 +61,13 @@ class Neg(AlgebraNode):
 
     expr: AlgebraNode
 
-    def __repr__(self) -> str:
-        if isinstance(self.expr, (Num, Var)):
-            return f"-{self.expr!r}"
-        return f"-({self.expr!r})"
+    # def __repr__(self) -> str:
+    #     # if isinstance(self.expr, (Num, Var)):
+    #     #     return f"-{self.expr!r}"
+    #     return f"-({self.expr!r})"
 
 
-@dataclass(repr=False)
+@dataclass(frozen=True)
 class Sum(AlgebraNode):
     """
     An n-ary addition node.
@@ -73,11 +78,11 @@ class Sum(AlgebraNode):
 
     terms: tuple[AlgebraNode, ...]
 
-    def __repr__(self) -> str:
-        return "(" + " + ".join(repr(term) for term in self.terms) + ")"
+    # def __repr__(self) -> str:
+    #     return "(" + " + ".join(repr(term) for term in self.terms) + ")"
 
 
-@dataclass(repr=False)
+@dataclass(frozen=True)
 class Prod(AlgebraNode):
     """
     An n-ary multiplication node.
@@ -88,11 +93,17 @@ class Prod(AlgebraNode):
 
     factors: tuple[AlgebraNode, ...]
 
-    def __repr__(self) -> str:
-        return "(" + " * ".join(repr(factor) for factor in self.factors) + ")"
+    # def __repr__(self) -> str:
+    #     out = str(self.factors[0])
+    #     for factor1, factor2 in zip(self.factors, self.factors[1:]):
+    #         if isinstance(factor1, Num) and isinstance(factor2, Num):
+    #             out += " * "
+    #         out += str(factor2)
+    #
+    #     return out
 
 
-@dataclass(repr=False)
+@dataclass(frozen=True)
 class Pow(AlgebraNode):
     """
     An exponentiation node.
@@ -105,11 +116,11 @@ class Pow(AlgebraNode):
     base: AlgebraNode
     exp: AlgebraNode
 
-    def __repr__(self) -> str:
-        return f"({self.base!r}^{self.exp!r})"
+    # def __repr__(self) -> str:
+    #     return f"({self.base!r}^{self.exp!r})"
 
 
-@dataclass(repr=False)
+@dataclass(frozen=True)
 class Inv(AlgebraNode):
     """
     A multiplicative inverse node.
@@ -120,5 +131,5 @@ class Inv(AlgebraNode):
 
     expr: AlgebraNode
 
-    def __repr__(self) -> str:
-        return f"({self.expr!r})^(-1)"
+    # def __repr__(self) -> str:
+    #     return f"({self.expr!r})⁻¹"
