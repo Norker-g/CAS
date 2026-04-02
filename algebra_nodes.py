@@ -1,6 +1,9 @@
 from __future__ import annotations
 from collections.abc import Iterator
 from dataclasses import dataclass
+from logging_setup import logging
+
+log = logging.getLogger(__name__)
 
 
 class AlgebraNode:
@@ -15,6 +18,7 @@ class AlgebraNode:
 
     def walk(self) -> Iterator["AlgebraNode"]:
         """Gets all nodes of the tree."""
+        # log.debug(f"walking {self}")
         yield self
         for child in self.children():
             yield from child.walk()
@@ -31,8 +35,8 @@ class Num(AlgebraNode):
 
     value: int | float
 
-    # def __repr__(self) -> str:
-    #     return str(self.value)
+    def __repr__(self) -> str:
+        return str(self.value)
 
 
 @dataclass(repr=False, frozen=True)
@@ -61,10 +65,10 @@ class Neg(AlgebraNode):
 
     expr: AlgebraNode
 
-    # def __repr__(self) -> str:
-    #     # if isinstance(self.expr, (Num, Var)):
-    #     #     return f"-{self.expr!r}"
-    #     return f"-({self.expr!r})"
+    def __repr__(self) -> str:
+        if isinstance(self.expr, (Num, Var)):
+            return f"-({self.expr!r})"
+        return f"-({self.expr!r})"
 
 
 @dataclass(frozen=True)
@@ -78,8 +82,8 @@ class Sum(AlgebraNode):
 
     terms: tuple[AlgebraNode, ...]
 
-    # def __repr__(self) -> str:
-    #     return "(" + " + ".join(repr(term) for term in self.terms) + ")"
+    def __repr__(self) -> str:
+        return "(" + " + ".join(repr(term) for term in self.terms) + ")"
 
 
 @dataclass(frozen=True)
@@ -93,14 +97,14 @@ class Prod(AlgebraNode):
 
     factors: tuple[AlgebraNode, ...]
 
-    # def __repr__(self) -> str:
-    #     out = str(self.factors[0])
-    #     for factor1, factor2 in zip(self.factors, self.factors[1:]):
-    #         if isinstance(factor1, Num) and isinstance(factor2, Num):
-    #             out += " * "
-    #         out += str(factor2)
-    #
-    #     return out
+    def __repr__(self) -> str:
+        out = str(self.factors[0])
+        for factor1, factor2 in zip(self.factors, self.factors[1:]):
+            if isinstance(factor1, Num) and isinstance(factor2, Num):
+                out += " * "
+            out += str(factor2)
+
+        return out
 
 
 @dataclass(frozen=True)
@@ -116,8 +120,8 @@ class Pow(AlgebraNode):
     base: AlgebraNode
     exp: AlgebraNode
 
-    # def __repr__(self) -> str:
-    #     return f"({self.base!r}^{self.exp!r})"
+    def __repr__(self) -> str:
+        return f"({self.base!r}^{self.exp!r})"
 
 
 @dataclass(frozen=True)
@@ -131,5 +135,5 @@ class Inv(AlgebraNode):
 
     expr: AlgebraNode
 
-    # def __repr__(self) -> str:
-    #     return f"({self.expr!r})⁻¹"
+    def __repr__(self) -> str:
+        return f"({self.expr!r})⁻¹"

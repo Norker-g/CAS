@@ -1,14 +1,15 @@
 from logging_setup import setup_logging
 import logging
 import sys
-import tokens
+
+# import tokens
 from lexer import Lexer
 from parser import Parser
 from ast_to_algebra import Converter
 from algebra_nodes import Var
 from simplify import Simplifier, SimplifierError
 
-setup_logging(level=__import__("logging").DEBUG)
+setup_logging(level=__import__("logging").INFO)
 log = logging.getLogger(__name__)
 
 if __name__ == "__main__":
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     # for i in alg_tree.walk():
     #     log.debug(i)
 
-    s = Simplifier(alg_tree)
+    s = Simplifier()
     simplified = s.simplify(alg_tree)
     log.info("simplified successfully")
     print(simplified)
